@@ -3,7 +3,7 @@ import visidia.simulation.process.messages.*;
 import visidia.simulation.SimulationConstants;
 
 
-public class NProducteur extends Algorithm{
+public class NProducteur extends Algorithm {
     
     private static final long serialVersionUID = 1L;
 
@@ -37,9 +37,11 @@ public class NProducteur extends Algorithm{
         
         if (getId() != 0 ){
             putProperty("label","Producteur num " +  getId());
-            Message jeton = sur_recpetion_de_jeton();
-            String msg = produire(jeton)
-            send_jeton(jeton,new StringMessage(msg));
+            IntegerMessage jeton = sur_recpetion_de_jeton();
+
+	    System.out.println("JETON: " + jeton.value());
+            IntegerMessage new_jeton = produire(jeton);
+            send_jeton(jeton);
             
             
         } else {
@@ -49,22 +51,23 @@ public class NProducteur extends Algorithm{
     
     }
     
-    public Object produire(Message jeton){
-        //generate rand number 0 jeton.
-        int num_of_messages = (int)(Math.random()*((Integer.parseInt(jeton) - 0)+1))+0;
-        for (i=0;i<num_of_messages;i++){
+    public IntegerMessage produire(IntegerMessage jeton){
+
+        int num_of_messages = (int)(Math.random()*((jeton.value() - 0)+1))+0;
+        for (int i=0; i < num_of_messages; i++){
            Consomateur_t[in] = randomString();
-           in = (in + 1) % Consomateur_t.length
+           in = (in + 1) % Consomateur_t.length;
         }
-     
-        consomateur_jeton = consomateur_jeton - 1;
-        return msg;
+
+	System.out.println("Current in value: " + this.in + " In Produteur num: " + getId());
+
+	return new IntegerMessage(jeton.value() - num_of_messages);
     }
     
 
-   public Message sur_recpetion_de_jeton() { 
+   public IntegerMessage sur_recpetion_de_jeton() { 
        System.out.println("Producteur num " + getId() + "ready to recieve a message...");
-       Message jeton =  receiveFrom(recvDoor.getNum());
+       IntegerMessage jeton =  (IntegerMessage) receiveFrom(recvDoor.getNum());
        System.out.println("Recieved jeton" + jeton);
        return jeton;
    }
