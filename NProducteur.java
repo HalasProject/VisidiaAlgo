@@ -39,9 +39,10 @@ public class NProducteur extends Algorithm {
             putProperty("label","Producteur num " +  getId());
             IntegerMessage jeton = sur_recpetion_de_jeton();
 
-	    System.out.println("JETON: " + jeton.value());
+	    System.out.println("Producteur num" + getId() + " received JETON: " + jeton.value());
             IntegerMessage new_jeton = produire(jeton);
-            send_jeton(jeton);
+	    System.out.println("Producteur num" + getId() + " sending new JETON: " + new_jeton.value());
+            send_jeton(new_jeton);
             
             
         } else {
@@ -61,7 +62,9 @@ public class NProducteur extends Algorithm {
 
 	System.out.println("Current in value: " + this.in + " In Produteur num: " + getId());
 
-	return new IntegerMessage(jeton.value() - num_of_messages);
+	IntegerMessage new_jeton = new IntegerMessage(jeton.value() - num_of_messages);
+	System.out.println("NEW JETON: " + new_jeton);
+	return new_jeton;
     }
     
 
@@ -82,8 +85,8 @@ public class NProducteur extends Algorithm {
 
     public String randomString() {
     String[] generatedString = {"Samedi","Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi"};
-    double x = (int)(Math.random()*((7-0)+1))+0;
-    return generatedString[(int)x];
+    int x = (int)(Math.random()*((6-0)+1))+0;
+    return generatedString[x];
     }
 
     public void information(){
