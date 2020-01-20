@@ -47,7 +47,19 @@ public class NProducteur extends Algorithm {
             
         } else {
            putProperty("label","Consommateur");
+	   System.out.println("------------------Consommateur---------");
            sendTo(0, consomateur_jeton);
+
+	   // receive the token that was passed around producers.
+	   // cansommer();
+	   // calc new token/auth after consuming from Consommateur_t.
+	   // sendTo(0, consommateur_jeton)
+
+	   // questions:
+	   // how much should the consumer consume
+
+
+
         }
     
     }
@@ -56,9 +68,12 @@ public class NProducteur extends Algorithm {
 
         int num_of_messages = (int)(Math.random()*((jeton.value() - 0)+1))+0;
         for (int i=0; i < num_of_messages; i++){
-           Consomateur_t[in] = randomString();
+	   String rand_str = randomString();
+           Consomateur_t[in] = rand_str;
            in = (in + 1) % Consomateur_t.length;
+
         }
+	putProperty("label", "Produced: " + num_of_messages + "messages");
 
 	System.out.println("Current in value: " + this.in + " In Produteur num: " + getId());
 
