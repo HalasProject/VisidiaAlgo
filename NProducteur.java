@@ -24,6 +24,9 @@ public class NProducteur extends Algorithm {
     public Door recvDoor = new Door(0);
     public Door sendDoor = new Door(1);
 
+    // public Door conso_sendDoor  = new Door(0)
+    public Door conso_recvDoor  = new Door(1);
+
     
     public static int counter = 0;
     IntegerMessage consomateur_jeton = new IntegerMessage(Consomateur_t.length);
@@ -35,30 +38,30 @@ public class NProducteur extends Algorithm {
 
     public void init(){
         
+      while(true) {
         if (getId() != 0 ){
-            putProperty("label","Producteur num " +  getId());
+          putProperty("label","Producteur num " +  getId());
             IntegerMessage jeton = sur_recpetion_de_jeton();
 
 	    System.out.println("Producteur num" + getId() + " received JETON: " + jeton.value());
             IntegerMessage new_jeton = produire(jeton);
 	    System.out.println("Producteur num" + getId() + " sending new JETON: " + new_jeton.value());
             send_jeton(new_jeton);
-            
-            
+
         } else {
-           putProperty("label","Consommateur");
-	   System.out.println("------------------Consommateur---------");
-           sendTo(0, consomateur_jeton);
+	     putProperty("label","Consommateur, in=" + this.in + ", out=" + this.out);
+	     System.out.println("------------------Consommateur---------");
+	     sendTo(0, consomateur_jeton);
 
-	   // receive the token that was passed around producers.
-	   // cansommer();
-	   // calc new token/auth after consuming from Consommateur_t.
-	   // sendTo(0, consommateur_jeton)
+	     IntegerMessage jeton =  (IntegerMessage) receiveFrom(conso_recvDoor.getNum());
+	     // putProperty("label","Consommateur, in=" + in + ", out=" + out);
+	     System.out.println("[Consomateur received jeton] " + jeton.value());
 
-	   // questions:
-	   // how much should the consumer consume
+	     consommer();
 
-
+	     IntegerMessage new_jeton = new IntegerMessage(Consomateur_t.length);
+	     sendTo(0, new_jeton);
+	  }
 
         }
     
@@ -83,19 +86,24 @@ public class NProducteur extends Algorithm {
     }
     
 
-   public IntegerMessage sur_recpetion_de_jeton() { 
+    public IntegerMessage sur_recpetion_de_jeton() { 
        System.out.println("Producteur num " + getId() + "ready to recieve a message...");
        IntegerMessage jeton =  (IntegerMessage) receiveFrom(recvDoor.getNum());
        System.out.println("Recieved jeton" + jeton);
        return jeton;
-   }
+    }
 
-   public void send_jeton(Message jeton) {
-       counter = counter + 1;
-       sendTo(sendDoor.getNum(), jeton);
-   }
-    public Object consommer(){
-         return null;
+    public void send_jeton(IntegerMessage jeton) {
+       sendTo(1, jeton);
+    }
+
+    public void consommer(){
+      while(out != in) {
+	Consomateur_t[out] = null;
+	out = (out + 1) % Consomateur_t.length;
+      }
+      System.out.println(Consomateur_t);
+
     }
 
     public String randomString() {
