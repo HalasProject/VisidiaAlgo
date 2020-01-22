@@ -88,10 +88,10 @@ public class NProducteur extends Algorithm {
 
     public void consommer(){
      Consomateur_t = new String[7];
-      while(out != in) {
-	    this.Consomateur_t[out] = null;
-	    this.out = (this.out + 1) % Consomateur_t.length;
-      }
+     // while(out != in) {
+	 //   this.Consomateur_t[out] = null;
+	 //   this.out = (this.out + 1) % Consomateur_t.length;
+     // }
         afficherTampon();
         in = 0;
         out = 0;
