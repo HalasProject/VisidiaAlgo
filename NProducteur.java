@@ -1,95 +1,84 @@
 import visidia.simulation.process.algorithm.Algorithm;
 import visidia.simulation.process.messages.*;
 import visidia.simulation.SimulationConstants;
+import java.util.Arrays; 
+import java.io.IOException;
 
 
 public class NProducteur extends Algorithm {
+
+    public static final String ANSI_RESET =  "\u001B[0m";
+    public static final String ANSI_GREEN =  "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String BG_GREEN =    "\u001B[42m";
     
     private static final long serialVersionUID = 1L;
 
     public int num_nodes = (int) getNetSize();
 
-    //Variable de Producteur :
-    public String[] Messages = {};
-    public String[] Consomateur_t = new String[20];
+    public static String[] Consomateur_t = new String[7];
 
-    public int out = 0; // indice d'extraction
-    public int in = 0; // Indice d'insertion
-
-    public int num_auth = 0;
-
-    public int nbmessi = 0; // Nombre de message stocké
-    public int nbauto = 0; // Nombre d'autorisation d'envoi
+    public static int out = 0;
+    public static int in = 0;
 
     public Door recvDoor = new Door(0);
     public Door sendDoor = new Door(1);
 
-    // public Door conso_sendDoor  = new Door(0)
     public Door conso_recvDoor  = new Door(1);
 
-    
-    public static int counter = 0;
-    IntegerMessage consomateur_jeton = new IntegerMessage(Consomateur_t.length);
+    static IntegerMessage  consomateur_jeton = new IntegerMessage(Consomateur_t.length);
     
     public Object clone(){
+        clearScreen();
         return new NProducteur();
-        
     }
 
     public void init(){
-        
-      while(true) {
+         
+        while(true) {
         if (getId() != 0 ){
-          putProperty("label","Producteur num " +  getId());
+            putProperty("label","Producteur N°" +  getId());
             IntegerMessage jeton = sur_recpetion_de_jeton();
-
-	    System.out.println("Producteur num" + getId() + " received JETON: " + jeton.value());
+	        System.out.println("[ * * . ] [RECEPTION REUSSI] Producteur N°" + getId());
+	        
             IntegerMessage new_jeton = produire(jeton);
-	    System.out.println("Producteur num" + getId() + " sending new JETON: " + new_jeton.value());
+
+            System.out.println("[ENVOI NEW TOKEN ] => "+ new_jeton.value());
             send_jeton(new_jeton);
-
         } else {
-	     putProperty("label","Consommateur, in=" + this.in + ", out=" + this.out);
-	     System.out.println("------------------Consommateur---------");
-	     sendTo(0, consomateur_jeton);
+	        putProperty("label","Consommateur");
+	        sendTo(0, consomateur_jeton);
 
-	     IntegerMessage jeton =  (IntegerMessage) receiveFrom(conso_recvDoor.getNum());
-	     // putProperty("label","Consommateur, in=" + in + ", out=" + out);
-	     System.out.println("[Consomateur received jeton] " + jeton.value());
 
-	     consommer();
-
-	     IntegerMessage new_jeton = new IntegerMessage(Consomateur_t.length);
-	     sendTo(0, new_jeton);
-	  }
-
+	        IntegerMessage jeton =  (IntegerMessage) receiveFrom(conso_recvDoor.getNum());
+	        System.out.println(BG_GREEN + "                             [CONSOMATEUR]: ("+ jeton.value()+")                         "  + ANSI_RESET);
+            
+	        consommer();
         }
-    
+      }
     }
     
     public IntegerMessage produire(IntegerMessage jeton){
-
         int num_of_messages = (int)(Math.random()*((jeton.value() - 0)+1))+0;
+         System.out.println("[ * * * ] [MESSAGE A PRODUIRE] => "+num_of_messages);
         for (int i=0; i < num_of_messages; i++){
-	   String rand_str = randomString();
-           Consomateur_t[in] = rand_str;
-           in = (in + 1) % Consomateur_t.length;
-
+	       String rand_str = randomString();
+           this.Consomateur_t[in] = rand_str;
+           this.in = (this.in + 1) % Consomateur_t.length;
         }
-	putProperty("label", "Produced: " + num_of_messages + "messages");
+        
+        System.out.println("[TAMPON]: ");
+        afficherTampon();
+        System.out.println(ANSI_YELLOW + "------------------------------------------------------------------------" + ANSI_RESET);
 
-	System.out.println("Current in value: " + this.in + " In Produteur num: " + getId());
-
-	IntegerMessage new_jeton = new IntegerMessage(jeton.value() - num_of_messages);
-	System.out.println("NEW JETON: " + new_jeton);
-	return new_jeton;
+	    IntegerMessage new_jeton = new IntegerMessage(jeton.value() - num_of_messages);
+	    return new_jeton;
     }
-    
 
     public IntegerMessage sur_recpetion_de_jeton() { 
-       System.out.println("Producteur num " + getId() + "ready to recieve a message...");
+       System.out.println(ANSI_GREEN + "[LIBRE] " + ANSI_RESET + "Producteur N° " + getId());
        IntegerMessage jeton =  (IntegerMessage) receiveFrom(recvDoor.getNum());
-       System.out.println("Recieved jeton" + jeton);
+       System.out.println("[ * . . ] [ENVOI TOKEN] => " + jeton);
        return jeton;
     }
 
@@ -98,23 +87,29 @@ public class NProducteur extends Algorithm {
     }
 
     public void consommer(){
+     Consomateur_t = new String[7];
       while(out != in) {
-	Consomateur_t[out] = null;
-	out = (out + 1) % Consomateur_t.length;
+	    this.Consomateur_t[out] = null;
+	    this.out = (this.out + 1) % Consomateur_t.length;
       }
-      System.out.println(Consomateur_t);
-
+        afficherTampon();
+        in = 0;
+        out = 0;
     }
 
     public String randomString() {
-    String[] generatedString = {"Samedi","Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi"};
-    int x = (int)(Math.random()*((6-0)+1))+0;
-    return generatedString[x];
+        String[] generatedString = {"Paris","Madrid","Tokyo","Moscow","London","Alger","New York","Sheingai","Toronto"};
+        int x = (int)(Math.random()*((8-0)+1))+0;
+        return generatedString[x];
     }
 
-    public void information(){
-        int neoud = (int) getNetSize();
-        System.out.println("Nombre de producteur =  "+ (neoud-1));
-        System.out.println("Nombre de consomateur =  "+1);
+    public void afficherTampon(){
+         String str = Arrays.toString(Consomateur_t);
+         System.out.println(str);
+    }
+
+    public static void clearScreen() {  
+        System.out.print("\033[H\033[2J");  
+        System.out.flush();  
     }
 }
